@@ -1,0 +1,16 @@
+[project]
+name = "call"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+	"torch>=2.0.0",
+	"transformers>=4.40.0",
+	"huggingface-hub>=0.20.0",
+	"pydantic>=2.12.2",
+	"numpy>=1.21.2",
+]
+
+[dependency-groups]
+dev = ["flake8", "mypy", "flake8-docstrings"]
