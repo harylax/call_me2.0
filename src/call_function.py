@@ -22,19 +22,17 @@ def _is_token_prefix_of_any_suffix(
 
 
 def _mask_logits(
+        masked_logits: list[float],
         logits: list[float],
         remaining_suffixes: list[str],
         llm: LLM
         ) -> None:
-    for token_id in range(len(logits)):
+    for token_id in llm.fn_name_tokens:
         token_str: str = llm.ft_decode(token_id)
-        if not token_str:
-            logits[token_id] = float('-inf')
-            continue
-        if not _is_token_prefix_of_any_suffix(
+        if _is_token_prefix_of_any_suffix(
             token_str, remaining_suffixes
         ):
-            logits[token_id] = float('-inf')
+            masked_logits[token_id] = logits[token_id]
 
 
 def function_name_from_llm(
@@ -57,10 +55,11 @@ def function_name_from_llm(
             )
 
         logits: list[float] = llm.get_logits(input_ids)
-        _mask_logits(logits, remaining_suffixes, llm)
+        masked_logits: list[float] = [float('-inf')] * len(logits)
+        _mask_logits(masked_logits, logits, remaining_suffixes, llm)
 
-        best_logit: float = max(logits)
-        best_id: int = logits.index(best_logit)
+        best_logit: float = max(masked_logits)
+        best_id: int = masked_logits.index(best_logit)
         best_token: str = llm.ft_decode(best_id)
 
         input_ids.append(best_id)

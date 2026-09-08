@@ -19,7 +19,7 @@
     "prompt": "Greet shrek",
     "name": "fn_greet",
     "parameters": {
-      "name": "John Doe"
+      "name": "Shrek"
     }
   },
   {
@@ -63,7 +63,7 @@
     "parameters": {
       "source_string": "Hello 34 I'm 233 years old",
       "regex": "([0-9]+)",
-      "replacement": "NUMBER"
+      "replacement": "NUMBERS"
     }
   },
   {
@@ -72,7 +72,7 @@
     "parameters": {
       "source_string": "Programming is fun",
       "regex": "aeiouAEIOU",
-      "replacement": "**"
+      "replacement": "asterisk"
     }
   },
   {
