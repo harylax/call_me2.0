@@ -5,7 +5,8 @@ import time
 from typing import Tuple
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer, PreTrainedModel, logging
+# from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer, PreTrainedModel, logging
+from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer, PreTrainedModel, Cache, logging
 from huggingface_hub import hf_hub_download
 import os
 
@@ -87,16 +88,41 @@ class Small_LLM_Model:
         return self._tokenizer.decode(ids, skip_special_tokens=True)
 
 
-    def get_logits_from_input_ids(self, input_ids: list[int]) -> list[float]:
-        """
-        Given a list of input token ids, return the raw logits (no softmax) for the next token.
-        """
-        input_tensor = torch.tensor([input_ids], device=self._device, dtype=torch.long)
+    # def get_logits_from_input_ids(self, input_ids: list[int]) -> list[float]:
+    #     """
+    #     Given a list of input token ids, return the raw logits (no softmax) for the next token.
+    #     """
+    #     input_tensor = torch.tensor([input_ids], device=self._device, dtype=torch.long)
+    #     with torch.no_grad():
+    #         out = self._model(input_ids=input_tensor)
+    #     # Get logits for the last token in the sequence for the batch (batch size 1)
+    #     logits = out.logits[0, -1].tolist()
+    #     return [float(x) for x in logits]
+
+    # //////////////!\\\\\\\\\\\\\\\\
+    # For TEST
+    #######################################################
+    def get_logits_from_input_ids(
+        self,
+        input_ids: list[int],
+        cache: Cache | None = None,
+    ) -> tuple[Cache, list[float]]:
+        input_tensor = torch.tensor(
+            [input_ids],
+            device=self._device,
+            dtype=torch.long,
+        )
         with torch.no_grad():
-            out = self._model(input_ids=input_tensor)
-        # Get logits for the last token in the sequence for the batch (batch size 1)
-        logits = out.logits[0, -1].tolist()
-        return [float(x) for x in logits]
+            out = self._model(
+                input_ids=input_tensor,
+                past_key_values=cache,
+                use_cache=True,
+                logits_to_keep=1,
+            )
+        return out.past_key_values, [
+            float(x) for x in out.logits[0, -1].tolist()
+        ]
+    #########################################################
 
 
     def get_path_to_vocab_file(self) -> str:

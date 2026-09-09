@@ -1,5 +1,6 @@
 from src import Small_LLM_Model, get_vocab, get_inverted_vocab
 from pydantic import BaseModel, model_validator, ConfigDict  # type: ignore
+from transformers import Cache  # type: ignore
 
 
 class LLM(BaseModel):
@@ -12,8 +13,10 @@ class LLM(BaseModel):
     max_len_vocab: int = 0
     fn_name_tokens: set[int] = set()
     string_tokens: set[int] = set()
-    number_tokens: set[int] = set()
-    integer_tokens: set[int] = set()
+    start_number_tokens: set[int] = set()
+    start_integer_tokens: set[int] = set()
+    mid_number_tokens: set[int] = set()
+    mid_integer_tokens: set[int] = set()
     true_id: int = 0
     false_id: int = 0
 
@@ -43,23 +46,58 @@ class LLM(BaseModel):
                 if token_str.endswith('"'):
                     self.string_tokens.add(token_id)
 
-            if "'" in token_str:
-                if token_str.endswith("'"):
-                    if all(c in "0123456789+-.'" for c in token_str):
-                        self.number_tokens.add(token_id)
-                    if all(c in "0123456789+-'" for c in token_str):
-                        self.integer_tokens.add(token_id)
-            else:
-                if all(c in "0123456789+-." for c in token_str):
-                    self.number_tokens.add(token_id)
+            if token_str.count('+') > 1 or token_str.count('-') > 1:
+                continue
+            if '+' in token_str:
+                if '-' in token_str:
+                    continue
+            if token_str.count('.') > 1:
+                continue
+            if token_str.count("'") > 1:
+                continue
 
-                if all(c in "0123456789+-" for c in token_str):
-                    self.integer_tokens.add(token_id)
+            if token_str.startswith('+') or token_str.startswith('-'):
+                try:
+                    if token_str[1] in ["'", "."]:
+                        continue
+                except IndexError:
+                    continue
+                if all(c in "0123456789+-.'" for c in token_str):
+                    if "'" in token_str and not token_str.endswith("'"):
+                        continue
+                    if token_str.startswith('.'):
+                        continue
+                    self.start_number_tokens.add(token_id)
+
+                    if '.' in token_str:
+                        continue
+                    self.start_integer_tokens.add(token_id)
+
+            if token_str[0].isdigit():
+                if all(c in "0123456789.'" for c in token_str):
+                    if "'" in token_str and not token_str.endswith("'"):
+                        continue
+                    self.start_number_tokens.add(token_id)
+                    if '.' in token_str:
+                        continue
+                    self.start_integer_tokens.add(token_id)
+
+            if all(c in "0123456789.'" for c in token_str):
+                if "'" in token_str and not token_str.endswith("'"):
+                    continue
+                self.mid_number_tokens.add(token_id)
+                if '.' in token_str:
+                    continue
+                self.mid_integer_tokens.add(token_id)
 
         self.true_id = self.ft_encode('true')[0]
         self.false_id = self.ft_encode('false')[0]
 
     def ft_encode(self, text: str) -> list[int]:
+        try:
+            return [self.vocab[text]]
+        except KeyError:
+            pass
         if len(text) > 20:
             return self.llm.encode(text)[0].tolist() if self.llm else []
         token_ids: list[int] = []
@@ -88,7 +126,19 @@ class LLM(BaseModel):
             for token_id in token_ids
             )
 
-    def get_logits(self, input_ids: list[int]) -> list[float]:
+    # def get_logits(self, input_ids: list[int]) -> list[float]:
+    #     return (
+    #         self.llm.get_logits_from_input_ids(input_ids) if self.llm else []
+    #     )
+
+    # ///////!\\\\\\\
+    # For TEST
+    def get_logits(
+        self,
+        input_ids: list[int],
+        cache: Cache | None = None,
+            ) -> tuple[Cache, list[float]]:
         return (
-            self.llm.get_logits_from_input_ids(input_ids) if self.llm else []
+            self.llm.get_logits_from_input_ids(input_ids, cache)
+            if self.llm is not None else (None, [])
         )

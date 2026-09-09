@@ -60,3 +60,8 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+    # llm = LLM()
+    # for token_id in sorted(llm.number_tokens):
+    #     token = llm.ft_decode(token_id)
+    #     if '-' in token:
+    #         print(token_id, repr(token))

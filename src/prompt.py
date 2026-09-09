@@ -34,6 +34,7 @@ def build_params_prompt(
         prompt: Prompt,
         function: FunctionDef
         ) -> str:
+    
     params_str: str = ', '.join(
         f"parameter '{key}' (type: {value})"
         for key, value

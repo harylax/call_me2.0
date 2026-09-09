@@ -32,7 +32,7 @@ def _mask_logits(
         if _is_token_prefix_of_any_suffix(
             token_str, remaining_suffixes
         ):
-            masked_logits[token_id] = logits[token_id]
+            masked_logits[token_id] = logits[token_id] + len(token_str)
 
 
 def function_name_from_llm(
@@ -48,13 +48,16 @@ def function_name_from_llm(
     input_ids: list[int] = llm.ft_encode(full_prompt)
     generated: str = ''
 
+    ##########################################
+    cache, logits = llm.get_logits(input_ids)
+    ##########################################
+
     while generated not in functions_names:
 
         remaining_suffixes: list[str] = _get_remaining_suffixes(
             functions_names, generated
             )
-
-        logits: list[float] = llm.get_logits(input_ids)
+        # logits: list[float] = llm.get_logits(input_ids)
         masked_logits: list[float] = [float('-inf')] * len(logits)
         _mask_logits(masked_logits, logits, remaining_suffixes, llm)
 
@@ -64,5 +67,9 @@ def function_name_from_llm(
 
         input_ids.append(best_id)
         generated += best_token
+
+        ######################################
+        cache, logits = llm.get_logits([best_id], cache)
+        ######################################
 
     return generated
