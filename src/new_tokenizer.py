@@ -1,6 +1,6 @@
 from src import Small_LLM_Model, get_vocab, get_inverted_vocab
 from pydantic import BaseModel, model_validator, ConfigDict  # type: ignore
-from transformers import Cache  # type: ignore
+from typing import Any
 
 
 class LLM(BaseModel):
@@ -136,9 +136,8 @@ class LLM(BaseModel):
     def get_logits(
         self,
         input_ids: list[int],
-        cache: Cache | None = None,
-            ) -> tuple[Cache, list[float]]:
+        cache: Any = None,
+            ) -> tuple[Any, list[float]]:
         return (
             self.llm.get_logits_from_input_ids(input_ids, cache)
-            if self.llm is not None else (None, [])
-        )
+            if self.llm is not None else (None, []))

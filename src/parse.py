@@ -66,15 +66,12 @@ def parse_args() -> tuple[str, str, str]:
     parser: ArgumentParser = ArgumentParser()
     parser.add_argument(
         "--input",
-        default='data/input/function_calling_tests.json'
-        )
+        default='data/input/function_calling_tests.json')
     parser.add_argument(
         "--functions_definition",
-        default='data/input/functions_definition.json'
-        )
+        default='data/input/functions_definition.json')
     parser.add_argument(
         "--output",
-        default='data/output/function_calling_results.json'
-        )
+        default='data/output/function_calling_results.json')
     args = parser.parse_args()
     return args.input, args.functions_definition, args.output

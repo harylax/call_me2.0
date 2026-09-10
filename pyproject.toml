@@ -10,6 +10,7 @@ dependencies = [
 	"huggingface-hub>=0.20.0",
 	"pydantic>=2.12.2",
 	"numpy>=1.21.2",
+	"pyfiglet>=1.0.4",
 ]
 
 [dependency-groups]

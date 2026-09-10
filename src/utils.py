@@ -14,14 +14,12 @@ def get_vocab(llm: Small_LLM_Model) -> dict[str, int]:
     except OSError as err:
         print(
             f"{err.__class__.__name__}: {err}",
-            file=sys.stderr
-        )
+            file=sys.stderr)
         sys.exit(1)
     except json.JSONDecodeError as err:
         print(
             f"JSONDecodeError: {err}",
-            file=sys.stderr
-        )
+            file=sys.stderr)
         sys.exit(1)
     return {
         key.replace(
@@ -34,16 +32,14 @@ def get_vocab(llm: Small_LLM_Model) -> dict[str, int]:
                         'Ď', '\r'
                         ): value
         for key, value
-        in vocab.items()
-    }
+        in vocab.items()}
 
 
 def get_inverted_vocab(llm: Small_LLM_Model) -> dict[int, str]:
     return {
         value: key
         for key, value
-        in get_vocab(llm).items()
-        }
+        in get_vocab(llm).items()}
 
 
 def get_function(

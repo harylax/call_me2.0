@@ -41,8 +41,7 @@ def function_name_from_llm(
         functions: list[FunctionDef]
         ) -> str:
     full_prompt: str = build_function_calling_prompt(
-        user_prompt, functions
-    )
+        user_prompt, functions)
 
     functions_names: list[str] = [func.name for func in functions]
     input_ids: list[int] = llm.ft_encode(full_prompt)
@@ -55,8 +54,7 @@ def function_name_from_llm(
     while generated not in functions_names:
 
         remaining_suffixes: list[str] = _get_remaining_suffixes(
-            functions_names, generated
-            )
+            functions_names, generated)
         # logits: list[float] = llm.get_logits(input_ids)
         masked_logits: list[float] = [float('-inf')] * len(logits)
         _mask_logits(masked_logits, logits, remaining_suffixes, llm)

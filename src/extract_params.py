@@ -22,6 +22,9 @@ def _mask_logits(
                 masked_logits[token_id] = logits[token_id]
         else:
             for token_id in llm.mid_number_tokens:
+                token_str: str = llm.ft_decode(token_id)
+                if '.' in token_str and '.' in generated:
+                    continue
                 masked_logits[token_id] = logits[token_id]
 
     elif param_type == 'integer':
@@ -40,6 +43,27 @@ def _list_signed_digits_in_prompt(prompt: str) -> list[str]:
             s: str = prompt[i - 1] + prompt[i]
             res.append(s)
     return res
+
+
+def _add_sign_to_token(
+        best_token: str,
+        generated: str,
+        param_type: str,
+        signed_list: list[str] = []
+        ) -> str:
+    if (
+        param_type in ('number', 'integer')
+        and generated == ''
+        and signed_list
+    ):
+        if signed_list[0].startswith('+'):
+            if best_token[0] == signed_list[0][1]:
+                signed_list.pop(0)
+        elif signed_list[0].startswith('-'):
+            if best_token[0] == signed_list[0][1]:
+                best_token = '-' + best_token
+                signed_list.pop(0)
+    return best_token
 
 
 def _constrained_gen(
@@ -67,19 +91,9 @@ def _constrained_gen(
         best_token: str = llm.ft_decode(best_id)
 
         input_ids.append(best_id)
-        if (
-            param_type in ['number', 'integer']
-            and generated == ''
-            and signed_list
-        ):
-            if signed_list[0].startswith('+'):
-                if best_token[0] == signed_list[0][1]:
-                    signed_list.pop(0)
-            elif signed_list[0].startswith('-'):
-                if best_token[0] == signed_list[0][1]:
-                    best_token = '-' + best_token
-                    signed_list.pop(0)
-        generated += best_token
+
+        generated += _add_sign_to_token(
+            best_token, generated, param_type, signed_list)
 
         if seen is not None:
             if best_id in seen:
@@ -102,42 +116,36 @@ def params_from_llm(
         function: FunctionDef
         ) -> dict[str, str | int | float | bool]:
     full_prompt: str = build_params_prompt(
-        user_prompt, function
-    )
+        user_prompt, function)
     input_ids: list[int] = llm.ft_encode(full_prompt)
     res: dict[str, str | int | float | bool] = {}
     signed_list: list[str] = _list_signed_digits_in_prompt(
-            user_prompt.prompt
-            )
+            user_prompt.prompt)
     for i, (param, param_def) in enumerate(function.parameters.items()):
 
         add_prompt: str = (
             f"\nThe parameter number {i} is "
             f"\"{param}\" and its type '{param_def.type}'\n"
-            f"\n{param}="
-            )
+            f"\n{param}=")
         add_token_ids: list[int] = llm.ft_encode(add_prompt)
         input_ids.extend(add_token_ids)
 
         if param_def.type == 'string':
             seen: dict[int, int] = {}
             generated: str = _constrained_gen(
-                'string', llm, input_ids, '"', seen
-            )
+                'string', llm, input_ids, '"', seen)
             res[param] = generated.rstrip('"').strip()
 
         elif param_def.type == 'number':
             generated = _constrained_gen(
                 'number', llm, input_ids, "'",
-                signed_list=signed_list
-            )
+                signed_list=signed_list)
             res[param] = float(generated.rstrip("'"))
 
         elif param_def.type == 'integer':
             generated = _constrained_gen(
                 'integer', llm, input_ids, "'",
-                signed_list=signed_list
-            )
+                signed_list=signed_list)
             res[param] = int(generated.rstrip("'"))
 
         elif param_def.type == 'boolean':
