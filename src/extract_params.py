@@ -169,10 +169,16 @@ def params_from_llm(
             res[param] = int(generated.rstrip("'"))
 
         elif param_def.type == 'boolean':
+            print("\r")
             # logits: list[float] = llm.get_logits(input_ids)
             #####################################
             _, logits = llm.get_logits(input_ids)
             #####################################
             res[param] = logits[llm.true_id] > logits[llm.false_id]
+            #########################################
+            print(
+                f"\033[35m{str(res[param])}\033[0m",
+                end='', flush=True)
+            #########################################
 
     return res
