@@ -76,6 +76,9 @@ def _constrained_gen(
         ) -> str:
     input_ids.extend(llm.ft_encode(closing_char))
     generated: str = ''
+    ###########
+    print("\r")
+    ###########
     #########################################
     cache, logits = llm.get_logits(input_ids)
     #########################################
@@ -107,6 +110,23 @@ def _constrained_gen(
         ################################################
         cache, logits = llm.get_logits([best_id], cache)
         ################################################
+
+        #####################################
+        to_print: str = generated.strip(closing_char)
+        if param_type == 'number':
+            print(
+                f"\033[35m{float(to_print)}\033[0m",
+                end='', flush=True)
+        elif param_type == 'integer':
+            print(
+                f"\033[35m{int(to_print)}\033[0m",
+                end='', flush=True)
+        else:
+            print(
+                f"\033[35m{to_print}\033[0m",
+                end='', flush=True)
+        #####################################
+
     return generated.strip()
 
 

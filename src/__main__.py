@@ -87,8 +87,7 @@ def build_output(
             i = (i + 1) % bar_len
         bar = "█" * bar_len
         print(
-            f"\r\033[36mGenerating|\033[0m{bar}\033[36m|\033[0m",
-            end="", flush=True)
+            f"\r\033[36mGenerating|\033[0m{bar}\033[36m|\033[0m", flush=True)
         time.sleep(0.2)
         bar_done.set()
 
