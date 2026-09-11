@@ -5,7 +5,7 @@ from .parse import (
 from .utils import timer, get_vocab, get_inverted_vocab, get_function
 from .new_tokenizer import LLM
 from .prompt import build_function_calling_prompt, build_params_prompt
-from .call_function import function_name_from_llm
+from .select_function import function_name_from_llm
 from .extract_params import params_from_llm
 
 __all__ = [

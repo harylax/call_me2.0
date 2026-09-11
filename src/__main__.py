@@ -76,14 +76,14 @@ def build_output(
 
     def progress_bar() -> None:
         nonlocal is_ready
-        bar_len: int = 50
+        bar_len: int = 40
         i: int = 0
         while not is_ready:
             bar: str = "█" * i + "░" * (bar_len - i)
             print(
                 f"\r\033[36mGenerating|\033[0m{bar}\033[36m|\033[0m",
                 end="", flush=True)
-            time.sleep(0.2)
+            time.sleep(0.15)
             i = (i + 1) % bar_len
         bar = "█" * bar_len
         print(
@@ -109,12 +109,14 @@ def run(
     functions_definition_path: str,
     output_path: str
 ) -> None:
-    llm = load_llm()
+    llm: LLM = load_llm()
 
     output: list[dict[str, Any]] = []
 
     functions: list[FunctionDef] = parse_functions_definition(
         functions_definition_path)
+
+    llm.cache_fn_name_tokens(functions)
 
     for user_prompt in parse_prompts(input_path):
         build_output(

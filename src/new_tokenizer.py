@@ -1,4 +1,4 @@
-from src import Small_LLM_Model, get_vocab, get_inverted_vocab
+from src import Small_LLM_Model, get_vocab, get_inverted_vocab, FunctionDef
 from pydantic import BaseModel, model_validator, ConfigDict  # type: ignore
 from typing import Any
 
@@ -26,19 +26,21 @@ class LLM(BaseModel):
         self.vocab = get_vocab(self.llm)
         self.inv_vocab = get_inverted_vocab(self.llm)
         self.max_len_vocab = max(len(key) for key in self.vocab.keys())
-        self._cache_fn_param_tokens()
+        self._cache_param_tokens()
         return self
 
-    def _cache_fn_param_tokens(self) -> None:
+    def cache_fn_name_tokens(self, functions: list[FunctionDef]) -> None:
+        valid_chars: set[str] = set()
+        for func in functions:
+            valid_chars.update(func.name)
+        for token_id, token_str in self.inv_vocab.items():
+            if all(c in valid_chars for c in token_str):
+                self.fn_name_tokens.add(token_id)
+
+    def _cache_param_tokens(self) -> None:
         for token_id, token_str in self.inv_vocab.items():
             if not token_str:
                 continue
-
-            if all(
-                (c.islower() or c.isdigit() or c == '_')
-                for c in token_str
-            ):
-                self.fn_name_tokens.add(token_id)
 
             if '"' not in token_str:
                 self.string_tokens.add(token_id)
