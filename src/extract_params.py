@@ -66,6 +66,24 @@ def _add_sign_to_token(
     return best_token
 
 
+def _print_tmp_generated(
+        generated: str, param_type: str, closing_char: str
+        ) -> None:
+    to_print: str = generated.strip(closing_char)
+    if param_type == 'number':
+        print(
+            f"\033[35m{float(to_print)}\033[0m",
+            end='', flush=True)
+    elif param_type == 'integer':
+        print(
+            f"\033[35m{int(to_print)}\033[0m",
+            end='', flush=True)
+    else:
+        print(
+            f"\033[35m{to_print}\033[0m",
+            end='', flush=True)
+
+
 def _constrained_gen(
         param_type: str,
         llm: LLM,
@@ -76,9 +94,7 @@ def _constrained_gen(
         ) -> str:
     input_ids.extend(llm.ft_encode(closing_char))
     generated: str = ''
-    ###########
     print("\r")
-    ###########
     #########################################
     cache, logits = llm.get_logits(input_ids)
     #########################################
@@ -111,21 +127,7 @@ def _constrained_gen(
         cache, logits = llm.get_logits([best_id], cache)
         ################################################
 
-        #####################################
-        to_print: str = generated.strip(closing_char)
-        if param_type == 'number':
-            print(
-                f"\033[35m{float(to_print)}\033[0m",
-                end='', flush=True)
-        elif param_type == 'integer':
-            print(
-                f"\033[35m{int(to_print)}\033[0m",
-                end='', flush=True)
-        else:
-            print(
-                f"\033[35m{to_print}\033[0m",
-                end='', flush=True)
-        #####################################
+        _print_tmp_generated(generated, param_type, closing_char)
 
     return generated.strip()
 
@@ -160,13 +162,25 @@ def params_from_llm(
             generated = _constrained_gen(
                 'number', llm, input_ids, "'",
                 signed_list=signed_list)
-            res[param] = float(generated.rstrip("'"))
+            try:
+                res[param] = float(generated.rstrip("'"))
+            except ValueError:
+                print(
+                    f"Warning: fail to generate '{param}' number, "
+                    "set it to 0.0")
+                res[param] = 0.0
 
         elif param_def.type == 'integer':
             generated = _constrained_gen(
                 'integer', llm, input_ids, "'",
                 signed_list=signed_list)
-            res[param] = int(generated.rstrip("'"))
+            try:
+                res[param] = int(generated.rstrip("'"))
+            except ValueError:
+                print(
+                    f"Warning: fail to generate '{param}' integer, "
+                    "set it to 0")
+                res[param] = 0
 
         elif param_def.type == 'boolean':
             print("\r")
@@ -175,10 +189,9 @@ def params_from_llm(
             _, logits = llm.get_logits(input_ids)
             #####################################
             res[param] = logits[llm.true_id] > logits[llm.false_id]
-            #########################################
+
             print(
                 f"\033[35m{str(res[param])}\033[0m",
                 end='', flush=True)
-            #########################################
 
     return res

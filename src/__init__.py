@@ -7,6 +7,8 @@ from .new_tokenizer import LLM
 from .prompt import build_function_calling_prompt, build_params_prompt
 from .select_function import function_name_from_llm
 from .extract_params import params_from_llm
+from .load_llm import load_llm
+from .runner import run
 
 __all__ = [
     "FunctionDef", "parse_args", "parse_functions_definition",
@@ -14,5 +16,5 @@ __all__ = [
     "build_params_prompt", "Small_LLM_Model", "timer",
     "get_vocab", "get_inverted_vocab", "get_function",
     "function_name_from_llm", "params_from_llm", "Prompt",
-    "LLM"
+    "LLM", "load_llm", "run"
     ]

@@ -70,10 +70,8 @@ def function_name_from_llm(
         cache, logits = llm.get_logits([best_id], cache)
         ######################################
 
-        #####################################
         print(
             f"\033[32m{generated}\033[0m",
             end='', flush=True)
-        #####################################
 
     return generated
