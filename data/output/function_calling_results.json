@@ -1,5 +1,13 @@
 [
   {
+    "prompt": "Do something with 5 and 3",
+    "name": "fn_add_numbers",
+    "parameters": {
+      "a": 5.0,
+      "b": 3.0
+    }
+  },
+  {
     "prompt": "What is the sum of -2 and 3?",
     "name": "fn_add_numbers",
     "parameters": {
@@ -41,6 +49,13 @@
     "name": "fn_reverse_string",
     "parameters": {
       "s": "world"
+    }
+  },
+  {
+    "prompt": "Reverse it",
+    "name": "fn_reverse_string",
+    "parameters": {
+      "s": "hello world"
     }
   },
   {

@@ -1,5 +1,8 @@
 [
   {
+    "prompt": "Do something with 5 and 3"
+  },
+  {
     "prompt": "What is the sum of -2 and 3?"
   },
   {
@@ -16,6 +19,9 @@
   },
   {
     "prompt": "Reverse the string 'world'"
+  },
+  {
+    "prompt": "Reverse it"
   },
   {
     "prompt": "What is the square root of 16?"
