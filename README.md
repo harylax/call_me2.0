@@ -6,10 +6,12 @@
 
 ### Presentation
 
-**Call Me Maybe** is a project that introduces to **function calling** in Large Language Models. But first, you may be wondering what exactly are **function calling** and **Large Language Models (LLMs)**?
+**Call Me Maybe** is a project that introduces to **function calling** using **constrained decoding** in Large Language Models. But first, you may be wondering what exactly **function calling**, **Large Language Models (LLMs)** and **constrained decoding** are?
 
 - **LLM:** is an AI model pre-trained to understand and generate human language
 - **function calling:** is a mechanism that makes **LLM** translate a natural language request into a precise function with typed parameters, from a list of available functions with descriptions, parameters types and return type.
+- **constrained decoding:** is a way to restrict LLM token selection at each generation step to make the output strictly follow predefined structure or format.
+- **token:** is a unit of a LLM vocabulary corresponding to an ID. LLMs don't understand raw text directly: text must first be **encoded** (text → token ID) before being processed and used to generate the next tokens, then **decoded** back (token ID → text) so it can be read by humans.
 
 ### Goal
 
@@ -57,11 +59,17 @@ The pipeline runs with a threaded progress visualization to follow the generatio
 
 ## Resources
 
-...
+- **Call Me Maybe 42 Subject**: already clearly explains the process of constrained decoding and the function calling mechanism expected in the project.
+- **`llm_sdk` module**: provided wrapper with methods used to interact with the LLM (`get_path_to_vocabulary_json`, `encode`, `decode`, `get_logits_from_input_ids`).
+- Official documentation for the LLM used in the project: https://huggingface.co/Qwen/Qwen3-0.6B
+- Additional documentation on how function calling works: https://huggingface.co/docs/hugs/guides/function-calling
+- Additional documentation on constrained decoding: https://www.aidancooper.co.uk/constrained-decoding/
 
 ### AI Usage
 
-...
+AI was used to:
+- rephrase sentences and improve their clarity in documentation.
+- ...
 
 ## Algorithm explanation
 
@@ -225,7 +233,10 @@ BPE is the tokenization algorithm used by modern LLMs (Qwen, LLaMA, GPT, ...). I
 
 ## Performance analysis
 
-...
+- **Near-perfect accuracy**: reached 100% correct function selection and parameter extraction on prompts (`data/input/function_calling_tests.json`) and functions definitions (`data/input/functions_definition.json`) provided with the subject, using `Qwen/Qwen3-0.6B`.
+- **100% valid JSON**: every output is fully JSON-schema-compliant. The implementation builds a `list[dict[str, Any]]` with the correct keys (`prompt`, `name`, `parameters`) and correctly typed value (`str`, `int`, `float`, `bool`). `json.dump` simply turn the result into a valid JSON file.
+- **Reasonable speed**: caching the valid token IDs for each category at startup avoids scanning the full vocabulary (~150,000 tokens) at every generation step. Thanks to this optimization, all test prompts provided with the subject are processed well under the 5-minute limit, using `Qwen/Qwen3-0.6B`.
+- **Robust error handling**: malformed input is gracefully rejected by pydantic validation, missing files and other file/directory errors are caught via `OSError` and `JSONDecodeError`, and other edge cases (such as `KeyboardInterrupt`) are handled to avoid a crash mid-run.
 
 ## Challenges faced
 
@@ -252,7 +263,12 @@ Using the full BPE tokenizer for every small generated value was too slow.
 
 ## Testing strategy
 
-...
+Validation of the implementation was done through:
+- **Provided test files**: `data/input/function_calling_tests.json` and `data/input/functions_definition.json`, then manually checking each entry of `function_calling_results.json` against the expected function name and parameter types.
+- **Custom prompts**: manually modifying test prompts to test negative numbers and boolean. Ambiguous prompts such as: "Do something with 5 and 3" or "Reverse it" were also added.
+- **JSON validity check**: every output file was parsed back with `json.load` to confirm it is syntactically valid and matches the expected JSON schema.
+- **Manual comparison of `ft_encode`/`ft_decode` against the native `encode`/`decode`**: testing the same strings through both paths and comparing the decoded result, to confirm the custom tokenizer wrapper stays correct on short and long texts.
+- **Error path testing**: running the program with missing input files, malformed JSON, and an invalid path, to confirm errors are caught and reported.
 
 ## Example usage
 
