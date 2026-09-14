@@ -41,21 +41,68 @@ Both steps rely on **constrained decoding**:
 - Before every token is picked, the raw logits returned by the model are masked so that only tokens which keep the output on a valid path are ever eligible.
 - The final JSON object (`prompt`, `name`, `parameters`) is then assembled by plain Python code and serialized with `json.dump`, so the output is guaranteed to be syntactically valid JSON regardless of what the model does.
 
-The pipeline runs with a threaded progress visualization to follow the generation live, and uses a custom implementation of encode/decode (`ft_encode`, `ft_decode`) based on a greedy longest-match strategy, much faster than the LLM's BPE (Byte Pair Encoding) for short text, while falling back to BPE for longer text.
+The pipeline displays progress visualization to follow the generation live, and uses a custom implementation of encode/decode (`ft_encode`, `ft_decode`) based on a greedy longest-match strategy, much faster than the LLM's BPE (Byte Pair Encoding) for short text, while falling back to BPE for longer text.
 
 ## Instructions
 
 ### Installation
 
-...
+This project uses `uv` to manage the Python environment and dependencies.
+
+Make sure `uv` is installed.
+
+Since the model weight, and `transformers` and `torch` packages are heavy, dedicated cache directories are used:
+
+```bash
+export HF_HOME=/home/$(USER)/goinfre/hf_cache
+export UV_CACHE_DIR=/home/$(USER)/goinfre/uv_cache
+```
+
+To create the virrtual environment and install all dependencies:
+
+```bash
+make install
+```
+
+This runs:
+
+```bash
+uv sync
+```
 
 ### Compilation
 
-...
+There is no traditional compilation step since the project is written in Python.
 
 ### Execution
 
-...
+The program can be launched using:
+
+```bash
+make run
+```
+
+By default, this runs:
+
+```bash
+uv run python -m src   # with default input and output files
+```
+
+You can run the program using your own input files and specified output path by using:
+
+```bash
+uv run python -m src --input input_file --functions_definition functions_definition_file --output output_file
+```
+
+#### Other Makefile commands
+
+```bash
+make debug           # run the program under the Python debugger
+make lint            # run flake8 and mypy
+make lint-strict     # run flake8 and mypy --strict
+make clean           # remove Python caches
+make fclean          # clean and remove .venv, hf_cache and uv_cache
+```
 
 ## Resources
 
@@ -205,11 +252,9 @@ Instead of sending a minimal prompt, the model receives a rich context that incl
 
 Larger, well-structured prompts significantly reduce hallucinations and improve parameter extraction accuracy.
 
-### 4. Threaded progress visualisation
+### 4. Step by step visualisation
 
 Generation can take several seconds.
-
-A background thread displays an animated progress bar while the main thread compute the logits.
 
 As token are generated, they are printed in real time. This gives the user continuous feedback on progress and intermediate results.
 
@@ -231,9 +276,20 @@ Both approaches avoid the cost of a full BPE (Byte Pair Encoding) tokenization f
 
 BPE is the tokenization algorithm used by modern LLMs (Qwen, LLaMA, GPT, ...). It is smarter than the greedy longest-match strategy, but slower when dealing with short texts.
 
+### Use of different models
+
+Other models than the required by the subject were used to test de constrained decoding implemention.
+
+| model                      | Accuracy (11 prompts) | valid JSON | speed test |
+|----------------------------|-----------------------|------------|------------|
+|`Qwen/Qwen3-0.6B` (default) |        90%+ (10/11)   |        ✅  |  ~2min ✅  |
+|`HuggingFaceTB/SmolLM2-360M`|        ~55% (6/11)    |        ✅  |  ~2min ✅  |
+|`Qwen/Qwen2.5-0.5B`         |        ~55% (6/11)    |        ✅  |  ~2min ✅  |
+|`Qwen/Qwen3-1.7B`           |        90%+ (10/11)   |        ✅  |  ~7min ❌  |
+
 ## Performance analysis
 
-- **Near-perfect accuracy**: reached 100% correct function selection and parameter extraction on prompts (`data/input/function_calling_tests.json`) and functions definitions (`data/input/functions_definition.json`) provided with the subject, using `Qwen/Qwen3-0.6B`.
+- **Near-perfect accuracy**: reached 90%+ correct function selection and parameter extraction on prompts (`data/input/function_calling_tests.json`) and functions definitions (`data/input/functions_definition.json`) provided with the subject, using `Qwen/Qwen3-0.6B`.
 - **100% valid JSON**: every output is fully JSON-schema-compliant. The implementation builds a `list[dict[str, Any]]` with the correct keys (`prompt`, `name`, `parameters`) and correctly typed value (`str`, `int`, `float`, `bool`). `json.dump` simply turn the result into a valid JSON file.
 - **Reasonable speed**: caching the valid token IDs for each category at startup avoids scanning the full vocabulary (~150,000 tokens) at every generation step. Thanks to this optimization, all test prompts provided with the subject are processed well under the 5-minute limit, using `Qwen/Qwen3-0.6B`.
 - **Robust error handling**: malformed input is gracefully rejected by pydantic validation, missing files and other file/directory errors are caught via `OSError` and `JSONDecodeError`, and other edge cases (such as `KeyboardInterrupt`) are handled to avoid a crash mid-run.
@@ -272,4 +328,6 @@ Validation of the implementation was done through:
 
 ## Example usage
 
-...
+```bash
+uv run python -m --input data/input/function_calling_tests.json --functions_definition data/input/functions_definition.json --output data/output/function_calling_results.json
+```

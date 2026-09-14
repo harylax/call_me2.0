@@ -1,25 +1,35 @@
-# export HF_HOME=/goinfre/$(USER)/hf_cache
-# export UV_PROJECT_ENVIRONMENT=/goinfre/$(USER)/.venv
-# export UV_CACHE_DIR=/goinfre/$(USER)/uv_cache
-# export HF_HOME=/sgoinfre/$(USER)/hf_cache
-# export UV_PROJECT_ENVIRONMENT=/sgoinfre/$(USER)/.venv
-# export UV_CACHE_DIR=/sgoinfre/$(USER)/uv_cache
-export HF_HOME=../hf_cache
-export UV_CACHE_DIR=../uv_cache
+export HF_HOME=/home/$(USER)/goinfre/hf_cache
+export UV_CACHE_DIR=/home/$(USER)/goinfre/uv_cache
 
 .PHONY: install run clean
 
-
-$(UV_PROJECT_ENVIRONMENT)/.installed:
+.venv/.installed:
 	mkdir -p $(HF_HOME) $(UV_CACHE_DIR)
 	uv sync
-	touch $(UV_PROJECT_ENVIRONMENT)/.installed
+	touch .venv/.installed
 
-install: $(UV_PROJECT_ENVIRONMENT)/.installed
+install: .venv/.installed
 
 run: install
-	uv run python3 -m src
+	uv run python -m src
+
+debug: install
+	uv run python -m pdb src
 
 clean:
 	find . -type d -name ".mypy_cache" -exec rm -rf {} +
 	find . -type d -name "__pycache__" -exec rm -rf {} +
+
+fclean: clean
+	find . -type d -name ".venv" -exec rm -rf {} +
+	rm -rf $(HF_HOME) $(UV_CACHE_DIR)
+
+lint:
+	uv run python -m flake8 src
+	uv run python -m mypy src --warn-return-any \
+		--warn-unused-ignores --ignore-missing-imports \
+		--disallow-untyped-defs --check-untyped-defs
+
+lint-strict:
+	uv run python -m flake8 src
+	uv run python -m mypy src --strict

@@ -1,17 +1,27 @@
 [project]
-name = "call"
+name = "call-me-maybe"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-	"torch>=2.0.0",
-	"transformers>=4.40.0",
-	"huggingface-hub>=0.20.0",
-	"pydantic>=2.12.2",
-	"numpy>=1.21.2",
-	"pyfiglet>=1.0.4",
+    "llm-sdk",
+    "numpy>=1.21.2",
+    "pydantic>=2.12.2",
+    "pyfiglet>=1.0.4",
 ]
 
+[tool.uv.workspace]
+members = [
+    "llm_sdk",
+]
+
+[tool.uv.sources]
+llm-sdk = { workspace = true }
+
 [dependency-groups]
-dev = ["flake8", "mypy", "flake8-docstrings"]
+dev = [
+    "flake8>=7.3.0",
+    "flake8-docstrings>=1.7.0",
+    "mypy>=2.3.1",
+]

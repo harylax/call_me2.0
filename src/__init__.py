@@ -1,4 +1,4 @@
-from llm_sdk.llm_sdk import Small_LLM_Model  # type ignore
+from llm_sdk import Small_LLM_Model  # type ignore
 from .parse import (
     FunctionDef, Prompt, parse_args, parse_functions_definition, parse_prompts
     )

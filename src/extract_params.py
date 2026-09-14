@@ -67,24 +67,28 @@ def _add_sign_to_token(
 
 
 def _print_tmp_generated(
-        generated: str, param_type: str, closing_char: str
+        generated: str, param: str, param_type: str, closing_char: str
         ) -> None:
     to_print: str = generated.strip(closing_char)
     if param_type == 'number':
         print(
+            f"\r\033[36mGenerating parameter '{param}'...\033[0m "
             f"\033[35m{float(to_print)}\033[0m",
             end='', flush=True)
     elif param_type == 'integer':
         print(
+            f"\r\033[36mGenerating parameter '{param}'...\033[0m "
             f"\033[35m{int(to_print)}\033[0m",
             end='', flush=True)
     else:
         print(
+            f"\r\033[36mGenerating parameter '{param}'...\033[0m "
             f"\033[35m{to_print}\033[0m",
             end='', flush=True)
 
 
 def _constrained_gen(
+        param: str,
         param_type: str,
         llm: LLM,
         input_ids: list[int],
@@ -96,15 +100,15 @@ def _constrained_gen(
     generated: str = ''
     print("\r")
     #########################################
-    cache, logits = llm.get_logits(input_ids)
+    # cache, logits = llm.get_logits(input_ids)
     #########################################
     while not generated.endswith(closing_char):
+        logits: list[float] = llm.get_logits(input_ids)
         masked_logits: list[float] = [float('-inf')] * len(logits)
         _mask_logits(
             masked_logits, logits, param_type,
             llm, generated, seen
         )
-        # logits: list[float] = llm.get_logits(input_ids)
         best_logit: float = max(masked_logits)
         best_id: int = masked_logits.index(best_logit)
         best_token: str = llm.ft_decode(best_id)
@@ -124,10 +128,10 @@ def _constrained_gen(
             break
 
         ################################################
-        cache, logits = llm.get_logits([best_id], cache)
+        # cache, logits = llm.get_logits([best_id], cache)
         ################################################
 
-        _print_tmp_generated(generated, param_type, closing_char)
+        _print_tmp_generated(generated, param, param_type, closing_char)
 
     return generated.strip()
 
@@ -155,12 +159,12 @@ def params_from_llm(
         if param_def.type == 'string':
             seen: dict[int, int] = {}
             generated: str = _constrained_gen(
-                'string', llm, input_ids, '"', seen)
+                param, 'string', llm, input_ids, '"', seen)
             res[param] = generated.rstrip('"').strip()
 
         elif param_def.type == 'number':
             generated = _constrained_gen(
-                'number', llm, input_ids, "'",
+                param, 'number', llm, input_ids, "'",
                 signed_list=signed_list)
             try:
                 res[param] = float(generated.rstrip("'"))
@@ -172,7 +176,7 @@ def params_from_llm(
 
         elif param_def.type == 'integer':
             generated = _constrained_gen(
-                'integer', llm, input_ids, "'",
+                param, 'integer', llm, input_ids, "'",
                 signed_list=signed_list)
             try:
                 res[param] = int(generated.rstrip("'"))
@@ -183,14 +187,15 @@ def params_from_llm(
                 res[param] = 0
 
         elif param_def.type == 'boolean':
-            print("\r")
-            # logits: list[float] = llm.get_logits(input_ids)
+            # print("\r")
+            logits: list[float] = llm.get_logits(input_ids)
             #####################################
-            _, logits = llm.get_logits(input_ids)
+            # _, logits = llm.get_logits(input_ids)
             #####################################
             res[param] = logits[llm.true_id] > logits[llm.false_id]
 
             print(
+                f"\r\033[36mGenerating parameter '{param}'...\033[0m "
                 f"\033[35m{str(res[param])}\033[0m",
                 end='', flush=True)
 

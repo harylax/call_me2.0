@@ -24,7 +24,7 @@ def _choose_llm() -> str:
         1: 'Qwen/Qwen3-0.6B',
         2: 'HuggingFaceTB/SmolLM2-360M',
         3: 'Qwen/Qwen2.5-0.5B',
-        4: 'Qwen/Qwen3.5-0.8B'}
+        4: 'Qwen/Qwen3-1.7B'}
     header: str = pyfiglet.figlet_format(
         'Call Me Maybe ...', font='dos_rebel')
     choice_menu: str = (
@@ -32,7 +32,7 @@ def _choose_llm() -> str:
         "\t1 - Qwen/Qwen3-0.6B\n"
         "\t2 - HuggingFaceTB/SmolLM2-360M\n"
         "\t3 - Qwen/Qwen2.5-0.5B\n"
-        "\t4 - Qwen/Qwen3.5-0.8B\n"
+        "\t4 - Qwen/Qwen3-1.7B\n"
         "──────────────────────────────────────────────────────\n"
         "Your choice [1-4]: ")
     while True:
