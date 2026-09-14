@@ -27,9 +27,11 @@ def build_output(
         print(f"{err.__class__.__name__}: {err}", file=sys.stderr)
         return
     print()
+    print("══════════════════════════════════════════════════════")
     print(f"\033[34mprompt: \033[0m\t{user_prompt.prompt}")
     print(f"\033[32mname: \033[0m\t\t{llm_fn_name}")
     print(f"\033[35mparameters: \033[0m\t{llm_params}")
+    print("══════════════════════════════════════════════════════")
     print()
 
 
