@@ -1,6 +1,6 @@
 from src import LLM
-from pydantic import ValidationError  # type: ignore
-import pyfiglet  # type: ignore
+from pydantic import ValidationError
+import pyfiglet
 import time
 import sys
 

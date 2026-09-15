@@ -1,5 +1,5 @@
 from src import Small_LLM_Model, get_vocab, get_inverted_vocab, FunctionDef
-from pydantic import BaseModel, model_validator, ConfigDict  # type: ignore
+from pydantic import BaseModel, model_validator, ConfigDict
 from typing import Any
 
 
@@ -63,7 +63,7 @@ class LLM(BaseModel):
                     if token_str[1] in ["'", "."]:
                         continue
                 except IndexError:
-                    continue
+                    pass
                 if all(c in "0123456789+-.'" for c in token_str):
                     if "'" in token_str and not token_str.endswith("'"):
                         continue

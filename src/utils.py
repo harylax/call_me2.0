@@ -52,7 +52,7 @@ def get_function(
     raise ValueError(f"'{function_name}' not found in definitions")
 
 
-def timer(func: Callable) -> Callable:
+def timer(func: Callable[[], None]) -> Callable[[], None]:
     @wraps(func)
     def wrapper() -> None:
         start: float = time.perf_counter()

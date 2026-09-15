@@ -179,10 +179,11 @@ Each parameter is generated in turn under the token constraints:
                     -------------------------------------
                     |                                     |
               vocab {str: int}                  inv_vocab {int: str}
-                    |
-                    v
-                Vocabulary analysis (startup, once)
-                    |
+                                                    |
+                                                    v
+                                                Vocabulary analysis 
+                                                (startup, once)
+                                                    |
       ----------------------------------------------------------------
       |            |              |               |            |     |
  fn_name_tokens string_tokens  number_tokens  integer_tokens  true_id false_id
@@ -328,10 +329,58 @@ Validation of the implementation was done through:
 
 ## Example usage
 
+The program can be run with the default input files (`data/input/function_calling_tests.json` and `data/input/functions_definition.json`) using:
+
 ```bash
-uv run python -m --input data/input/function_calling_tests.json --functions_definition data/input/functions_definition.json --output data/output/function_calling_results.json
+make run
 ```
-...
+or
+```bash
+uv run python -m src
+```
+
+The output will be created by default in `data/output/function_calling_results.json`.
+
+You can run the progran with your own prompts and functions definition and get the result in a custom path using:
+
+```bash
+uv run python -m src --input path/to/your/function_calling_prompts.json --functions_definition path/to/your/functions_definition.json --output path/to/your/function_calling_results.json
+```
+
+The program processes each prompt from **input file** and selects the appropriate function and parameters from the functions defined in **functions definition file**.
+
+For example, given the prompts:
+```json
+[
+  {
+    "prompt": "What is the sum of 2 and 3?"
+  },
+  {
+    "prompt": "Reverse the string 'hello'"
+  }
+]
+```
+
+the results are:
+```json
+[
+  {
+    "name": "fn_add_numbers",
+    "parameters": {
+      "a": 2.0,
+      "b": 3.0
+    }
+  },
+  {
+    "name": "fn_reverse_string",
+    "parameters": {
+      "s": "hello"
+    }
+  }
+]
+```
+
+
 
 ## Bonus Features
 

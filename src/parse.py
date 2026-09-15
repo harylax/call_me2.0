@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, ValidationError  # type: ignore
+from pydantic import BaseModel, ConfigDict, ValidationError
 import json
 from typing import Any, Literal
 import sys
@@ -26,7 +26,7 @@ class Prompt(BaseModel):
     prompt: str
 
 
-def _json_load(path: str) -> list[dict[str, Any]]:
+def _json_load(path: str) -> Any:
     try:
         with open(path) as f:
             return json.load(f)
