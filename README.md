@@ -58,7 +58,7 @@ export HF_HOME=/home/$(USER)/goinfre/hf_cache
 export UV_CACHE_DIR=/home/$(USER)/goinfre/uv_cache
 ```
 
-To create the virrtual environment and install all dependencies:
+To create the vitual environment and install all dependencies:
 
 ```bash
 make install
@@ -278,7 +278,7 @@ BPE is the tokenization algorithm used by modern LLMs (Qwen, LLaMA, GPT, ...). I
 
 ### Use of different models
 
-Other models than the required by the subject were used to test de constrained decoding implemention.
+Other models than the required by the subject were used to test the constrained decoding implemention.
 
 | model                      | Accuracy (11 prompts) | valid JSON | speed test |
 |----------------------------|-----------------------|------------|------------|
@@ -331,3 +331,21 @@ Validation of the implementation was done through:
 ```bash
 uv run python -m --input data/input/function_calling_tests.json --functions_definition data/input/functions_definition.json --output data/output/function_calling_results.json
 ```
+...
+
+## Bonus Features
+
+- **Support for multiple LLM models**: beyond `Qwen/Qwen3-0.6B` (the default model required by the subject), `HuggingFaceTB/SmolLM2-360M`, `Qwen/Qwen2.5-0.5B` and `Qwen/Qwen3-1.7B` were also tested to benchmark the constrained decoding implementation. Smaller models show noticeably lower accuracy compared to the default model, while `Qwen3-1.7B` reaches similar accuracy but at a much slower generation speed (see benchmark table above).
+- **Recoding the tokenizer**: the native `encode`/`decode` methods are wrapped by a custom greedy longest-match tokenizer using a dictionnary of vocabulary created at startup with `get_path_to_vocab_file`. This strategy is faster than the original BPE tokenizer for short texts. Both functions fall back transparently to the model's native tokenizer for longer text (> 20 characters), where BPE remains more efficient.
+- **Performance optimizations via startup caching**: the model vocabulary (~150,000 tokens) is scanned once at startup to pre-compute, for each generation category, the set of valid token IDs:
+	- `fn_name_tokens`: tokens made only of characters found in the available function names
+	- `string_tokens`: tokens valid inside a JSON string value (containing `"` only if it's the closing character)
+	- `start_number_tokens` / `mid_number_tokens`: tokens valid as the first / following characters of a number
+	- `start_integer_tokens` / `mid_integer_tokens`: tokens valid as the first / following characters of an integer
+	- `true_id` / `false_id`: token IDs corresponding to the boolean literals `true` and `false`
+
+	This avoids rescanning the full vocabulary at every decoding step and is a major contributor to keeping generation under the 5-minute limit.
+
+- **Visualization of the generation process**: at every decoding step, the newly generated token is printed to the terminal in real time, giving continuous feedback on progress and intermediate results while the model generates.
+- **Public implementation of tokenizer** encode and optional decode methods: public API `ft_encode`, `ft_decode` ...
+- **Demonstration of how encoding and decoding integrate with constrained decoding**: a single run illustrates the full loop between tokenization and generation — `ft_encode` turns the contextual prompt into input IDs, the logits returned by the model are masked at each step using the pre-computed token sets, and `ft_decode` turns the selected token IDs back into the final `str` / `int` / `float` / `bool` values used to build the JSON output.

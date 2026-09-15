@@ -48,14 +48,14 @@ def function_name_from_llm(
     generated: str = ''
 
     ##########################################
-    # cache, logits = llm.get_logits(input_ids)
+    cache, logits = llm.get_logits(input_ids)
     ##########################################
 
     while generated not in functions_names:
 
         remaining_suffixes: list[str] = _get_remaining_suffixes(
             functions_names, generated)
-        logits: list[float] = llm.get_logits(input_ids)
+        # logits: list[float] = llm.get_logits(input_ids)
         masked_logits: list[float] = [float('-inf')] * len(logits)
         _mask_logits(masked_logits, logits, remaining_suffixes, llm)
 
@@ -67,7 +67,7 @@ def function_name_from_llm(
         generated += best_token
 
         ######################################
-        # cache, logits = llm.get_logits([best_id], cache)
+        cache, logits = llm.get_logits([best_id], cache)
         ######################################
 
         print(

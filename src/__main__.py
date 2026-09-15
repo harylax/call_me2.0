@@ -2,7 +2,7 @@ from src import (
     timer, parse_args, run
 )
 import sys
-import pyfiglet  # type: ignore
+import pyfiglet
 
 
 @timer

@@ -100,10 +100,10 @@ def _constrained_gen(
     generated: str = ''
     print("\r")
     #########################################
-    # cache, logits = llm.get_logits(input_ids)
+    cache, logits = llm.get_logits(input_ids)
     #########################################
     while not generated.endswith(closing_char):
-        logits: list[float] = llm.get_logits(input_ids)
+        # logits: list[float] = llm.get_logits(input_ids)
         masked_logits: list[float] = [float('-inf')] * len(logits)
         _mask_logits(
             masked_logits, logits, param_type,
@@ -128,7 +128,7 @@ def _constrained_gen(
             break
 
         ################################################
-        # cache, logits = llm.get_logits([best_id], cache)
+        cache, logits = llm.get_logits([best_id], cache)
         ################################################
 
         _print_tmp_generated(generated, param, param_type, closing_char)
@@ -187,10 +187,9 @@ def params_from_llm(
                 res[param] = 0
 
         elif param_def.type == 'boolean':
-            # print("\r")
-            logits: list[float] = llm.get_logits(input_ids)
+            # logits: list[float] = llm.get_logits(input_ids)
             #####################################
-            # _, logits = llm.get_logits(input_ids)
+            _, logits = llm.get_logits(input_ids)
             #####################################
             res[param] = logits[llm.true_id] > logits[llm.false_id]
 

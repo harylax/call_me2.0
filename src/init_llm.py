@@ -16,7 +16,7 @@ def _print_header() -> None:
         'Call Me Maybe ...', font='dos_rebel')
     for s in [text, dot_1, dot_2, dot_3]:
         print(f"\033c\033[35m\n{s}\033[0m")
-        time.sleep(0.5)
+        time.sleep(0.2)
 
 
 def _choose_llm() -> str:
