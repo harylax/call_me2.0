@@ -60,7 +60,7 @@ def _mask_logits(
         if _is_token_prefix_of_any_suffix(
             token_str, remaining_suffixes
         ):
-            masked_logits[token_id] = logits[token_id] + len(token_str)
+            masked_logits[token_id] = logits[token_id]
 
 
 def function_name_from_llm(

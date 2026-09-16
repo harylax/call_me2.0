@@ -147,7 +147,7 @@ This context is encoded into input IDs that is given to the model via `get_logit
 
 Tokens that do not belong to the pre-computed set `fn_name_tokens` are discarded. As are tokens that are not a valid prefix of any remaining function name.
 
-Among the surviving tokens the one with the highest probability is selected (with a small bonus proportional to token length).
+Among the surviving tokens the one with the highest probability is selected.
 
 The process is repeated until a complete function name has been generated.
 
@@ -171,7 +171,7 @@ The process is repeated until a complete function name has been generated.
                             is it a prefix of one of remaining_suffixes? |
                                     |                                    |
                               masked_logits[token]                       |
-                              = logits[token] + len(token) else -inf     |
+                              = logits[token] else -inf     |
                                     |                                    |
                             best_id = argmax(masked_logits)              |
                                     |                                    |
