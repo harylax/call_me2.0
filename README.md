@@ -358,7 +358,7 @@ Both approaches avoid the cost of a full BPE (Byte Pair Encoding) tokenization f
 
 BPE is the tokenization algorithm used by modern LLMs (Qwen, LLaMA, GPT, ...). It is smarter than the greedy longest-match strategy, but slower when dealing with short texts.
 
-### Use of different models
+### 6. Use of different models
 
 Other models than the required by the subject were used to test the constrained decoding implemention.
 
