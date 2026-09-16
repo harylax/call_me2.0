@@ -72,17 +72,20 @@ def _print_tmp_generated(
     to_print: str = generated.strip(closing_char)
     if param_type == 'number':
         print(
-            f"\r\033[36mGenerating parameter '{param}'...\033[0m "
+            f"\r\033[36mGenerating parameter '{param}' "
+            f"({param_type})...\033[0m "
             f"\033[35m{float(to_print)}\033[0m",
             end='', flush=True)
     elif param_type == 'integer':
         print(
-            f"\r\033[36mGenerating parameter '{param}'...\033[0m "
+            f"\r\033[36mGenerating parameter '{param}' "
+            f"({param_type})...\033[0m "
             f"\033[35m{int(to_print)}\033[0m",
             end='', flush=True)
     else:
         print(
-            f"\r\033[36mGenerating parameter '{param}'...\033[0m "
+            f"\r\033[36mGenerating parameter '{param}' "
+            f"({param_type})...\033[0m "
             f"\033[35m{to_print}\033[0m",
             end='', flush=True)
 
@@ -187,6 +190,7 @@ def params_from_llm(
                 res[param] = 0
 
         elif param_def.type == 'boolean':
+            print('\r')
             # logits: list[float] = llm.get_logits(input_ids)
             #####################################
             _, logits = llm.get_logits(input_ids)
@@ -194,7 +198,8 @@ def params_from_llm(
             res[param] = logits[llm.true_id] > logits[llm.false_id]
 
             print(
-                f"\r\033[36mGenerating parameter '{param}'...\033[0m "
+                f"\r\033[36mGenerating parameter '{param}' "
+                "(boolean)...\033[0m "
                 f"\033[35m{str(res[param])}\033[0m",
                 end='', flush=True)
 

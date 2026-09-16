@@ -41,7 +41,7 @@ Both steps rely on **constrained decoding**:
 - Before every token is picked, the raw logits returned by the model are masked so that only tokens which keep the output on a valid path are ever eligible.
 - The final JSON object (`prompt`, `name`, `parameters`) is then assembled by plain Python code and serialized with `json.dump`, so the output is guaranteed to be syntactically valid JSON regardless of what the model does.
 
-The pipeline displays progress visualization to follow the generation live, and uses a custom implementation of encode/decode (`ft_encode`, `ft_decode`) based on a greedy longest-match strategy, much faster than the LLM's BPE (Byte Pair Encoding) for short text, while falling back to BPE for longer text.
+The pipeline displays progress visualization to follow the generation live, and uses a custom implementation of encode/decode (`ft_encode`, `ft_decode`) based on a greedy longest-match strategy, much faster than the LLM's BPE (Byte Pair Encoding) for short text, while falling back to BPE which is more accurate for longer text.
 
 ## Instructions
 
@@ -148,6 +148,33 @@ Among the surviving tokens the one with the highest probability is selected (wit
 
 The process is repeated until a complete function name has been generated.
 
+            build_function_calling_prompt
+                    |
+              ft_encode -> input_ids
+                    |
+              generated = ''
+                    |
+        generated in functions_names? <-----------------------------------
+        |                           |                                    |
+      yes                           no                                   |
+        |                           |                                    |
+    return generated              get_logits(input_ids) -> logits        |
+                                    |                                    |
+                                  Are any function_name                  |
+                                  beginning with generated?              |
+                                  = remaining_suffixes                   |
+                                    |                                    |
+                                For each token in fn_name_tokens:        |
+                            is it a prefix of one of remaining_suffixes? |
+                                    |                                    |
+                              masked_logits[token]                       |
+                              = logits[token] + len(token) else -inf     |
+                                    |                                    |
+                            best_id = argmax(masked_logits)              |
+                                    |                                    |
+                            generated += ft_decode(best_id)              |
+                              input_ids.append(best_id)    ---------------
+
 ### 3. Parameters extraction (`params_from_llm`)
 
 Once a function has been selected, another context is created. It describes the function selected, which parameters are still needed to be generated (with their types), and the original user prompt. Constraints are added to encourage precise answers.
@@ -166,6 +193,57 @@ Each parameter is generated in turn under the token constraints:
 	- Generation stops as soon as a token ending with `'` is produced.
 	- Because the model rarely emits a leading sign, the original user prompt is scanned for signed numeric literals; the detected sign is then applied to the generated absolute value.
 - **boolean**: the logits corresponding to the tokens `true` and `false` are compared; the higher one is chosen.
+- 
+
+
+                    build_params_prompt
+                            |
+                    ft_encode -> input_ids
+                            |
+            signed_list = signed digits found in user_prompt
+                            |
+            For each param in function's parameters,
+                    what is the type ?
+                            |
+        -----------------------------------------------------
+        |                       |                           |
+      string                number/integer              boolean
+        |                       |                           |
+    closing_char='"'          closing_char="'"          get_logits(input_ids) -> logits
+    seen = {}                 signed_list=...           res[param] = logits[true_id] > logits[false_id]
+        |                       |                                   |
+        ----_constrained_gen ----                                   |
+                  |                                                 |
+              generated = ''                                        |
+                  |                                                 |
+    generated ends with closing_char? <-------------------------    |
+        |                   |                                  |    |
+        yes                 no                                 |    |
+        |                   |                                  |    |
+        |          get_logits(input_ids) -> logits             |    |
+        |                   |                                  |    |
+        |          mask logits by parameter's type:            |    |
+        |            string  -> string_tokens (penalize seen)  |    |
+        |            number  -> start/mid_number_tokens        |    |
+        |            integer -> start/mid_integer_tokens       |    |
+        |                   |                                  |    |
+        |          best_id = argmax(masked_logits)             |    |
+        |                   |                                  |    |
+        |          best_token = ft_decode(best_id)             |    |
+        |          apply sign from signed_list for first digit |    |
+        |          input_ids.append(best_id)                   |    |
+        |          seen[best_id] += 1 for string               |    |
+        |          generated += best_token                     |    |
+        |                   |                                  |    |
+        |--- yes ----len(generated) > 50?                      |    |
+        |                   |                                  |    |
+        |                  no ----------------------------------    |
+        |                                                           |
+    res[param] = float(number) / int(integer) / stripped string     |
+        |                                                           |
+        -------------------------------------------------------------
+                            |
+                      return res
 
 ### 4. Overall pipeline
 
