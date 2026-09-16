@@ -174,13 +174,13 @@ class LLM(BaseModel):
             )
 
     # def get_logits(self, input_ids: list[int]) -> list[float]:
-    #     """Get a score distribution of the IDs in the model's vocabulary.
+    #     """Compute the next token logits from the given input token IDS.
 
     #     Args:
     #         input_ids: Token IDs to feed to the model.
 
     #     Returns:
-    #         List of logits.
+    #         List of logits for the next token.
     #     """
     #     return (
     #         self.llm.get_logits_from_input_ids(input_ids) if self.llm else []
