@@ -1,3 +1,5 @@
+"""Orchestrate the full function-calling pipeline and write results."""
+
 from pathlib import Path
 from typing import Any
 from src import (
@@ -13,6 +15,14 @@ def build_output(
         llm: LLM,
         functions: list[FunctionDef]
         ) -> None:
+    """Select function and parameters for one prompt and append to output.
+
+    Args:
+        output: List to append the result dict to.
+        user_prompt: Current user prompt.
+        llm: Initialized LLM instance.
+        functions: Available function definitions.
+    """
     try:
         llm_fn_name: str = function_name_from_llm(
             user_prompt, llm, functions)
@@ -40,6 +50,13 @@ def run(
     functions_definition_path: str,
     output_path: str
 ) -> None:
+    """Run the full function-calling pipeline.
+
+    Args:
+        input_path: Path to the prompts JSON file.
+        functions_definition_path: Path to the functions definition JSON.
+        output_path: Path where results will be written.
+    """
     llm: LLM = load_llm()
 
     output: list[dict[str, Any]] = []

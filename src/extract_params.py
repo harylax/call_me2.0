@@ -1,3 +1,5 @@
+"""Extract function parameters via constrained LLM generation."""
+
 from src import LLM, FunctionDef, build_params_prompt, Prompt
 
 
@@ -9,6 +11,16 @@ def _mask_logits(
         generated: str = '',
         seen: dict[int, int] | None = None
         ) -> None:
+    """Mask logits according to the expected parameter type.
+
+    Args:
+        masked_logits: Output list to fill.
+        logits: Original model logits.
+        param_type: Expected type ('string', 'number' or 'integer').
+        llm: LLM instance providing token sets.
+        generated: Text already generated for this parameter.
+        seen: Optional count of already seen token IDs (for strings).
+    """
     if param_type == 'string':
         for token_id in llm.string_tokens:
             if seen is not None:
@@ -37,6 +49,14 @@ def _mask_logits(
 
 
 def _list_signed_digits_in_prompt(prompt: str) -> list[str]:
+    """Extract signed digits (e.g. '+3', '-5') from a prompt.
+
+    Args:
+        prompt: User prompt text.
+
+    Returns:
+        List of signed digit strings found in the prompt.
+    """
     res: list[str] = []
     for i in range(1, len(prompt)):
         if prompt[i].isdigit() and prompt[i - 1] in ('+', '-'):
@@ -51,6 +71,17 @@ def _add_sign_to_token(
         param_type: str,
         signed_list: list[str] = []
         ) -> str:
+    """Possibly prepend a sign to the first token of a number/integer.
+
+    Args:
+        best_token: Token chosen by the model.
+        generated: Text already generated.
+        param_type: Parameter type.
+        signed_list: Remaining signed digits extracted from the prompt.
+
+    Returns:
+        Token string, possibly with a leading '-'.
+    """
     if (
         param_type in ('number', 'integer')
         and generated == ''
@@ -69,6 +100,14 @@ def _add_sign_to_token(
 def _print_tmp_generated(
         generated: str, param: str, param_type: str, closing_char: str
         ) -> None:
+    """Print the currently generated parameter value.
+
+    Args:
+        generated: Text generated so far.
+        param: Parameter name.
+        param_type: Parameter type.
+        closing_char: Character that closes the value.
+    """
     to_print: str = generated.strip(closing_char)
     if param_type == 'number':
         print(
@@ -99,6 +138,20 @@ def _constrained_gen(
         seen: dict[int, int] | None = None,
         signed_list: list[str] = []
         ) -> str:
+    """Generate a parameter value with type-constrained decoding.
+
+    Args:
+        param: Parameter name (for display).
+        param_type: Expected type.
+        llm: LLM instance.
+        input_ids: Current input token IDs (mutated in place).
+        closing_char: Character that ends the value.
+        seen: Optional token frequency counter.
+        signed_list: Remaining signed digits from the prompt.
+
+    Returns:
+        Generated parameter string (without the closing character).
+    """
     input_ids.extend(llm.ft_encode(closing_char))
     generated: str = ''
     print("\r")
@@ -144,6 +197,16 @@ def params_from_llm(
         llm: LLM,
         function: FunctionDef
         ) -> dict[str, str | int | float | bool]:
+    """Extract parameter values for a function via constrained generation.
+
+    Args:
+        user_prompt: User prompt.
+        llm: Initialized LLM instance.
+        function: Selected function definition.
+
+    Returns:
+        Dictionary mapping parameter names to their extracted values.
+    """
     full_prompt: str = build_params_prompt(
         user_prompt, function)
     input_ids: list[int] = llm.ft_encode(full_prompt)

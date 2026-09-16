@@ -1,3 +1,5 @@
+"""Load and select the small LLM model used for function calling."""
+
 from src import LLM
 from pydantic import ValidationError
 import pyfiglet
@@ -6,6 +8,7 @@ import sys
 
 
 def _print_header() -> None:
+    """Print the animated startup header."""
     text: str = pyfiglet.figlet_format(
         'Call Me Maybe', font='dos_rebel')
     dot_1: str = pyfiglet.figlet_format(
@@ -20,6 +23,11 @@ def _print_header() -> None:
 
 
 def _choose_llm() -> str:
+    """Prompt the user to choose an LLM model.
+
+    Returns:
+        Selected model identifier string.
+    """
     model: dict[int, str] = {
         1: 'Qwen/Qwen3-0.6B',
         2: 'HuggingFaceTB/SmolLM2-360M',
@@ -46,6 +54,11 @@ def _choose_llm() -> str:
 
 
 def load_llm() -> LLM:
+    """Prompt the user to choose an LLM model.
+
+    Returns:
+        Selected model identifier string.
+    """
     _print_header()
     try:
         return LLM(model=_choose_llm())

@@ -14,7 +14,7 @@ run: install
 	uv run python -m src
 
 debug: install
-	uv run python -m pdb src
+	uv run python -m pdb -m src
 
 clean:
 	find . -type d -name ".mypy_cache" -exec rm -rf {} +

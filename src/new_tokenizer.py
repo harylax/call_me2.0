@@ -1,9 +1,29 @@
+"""LLM wrapper with vocabulary helpers and constrained decoding."""
+
 from src import Small_LLM_Model, get_vocab, get_inverted_vocab, FunctionDef
 from pydantic import BaseModel, model_validator, ConfigDict
 from typing import Any
 
 
 class LLM(BaseModel):
+    """Wrapper around a small LLM with constrained decoding helpers.
+
+    Attributes:
+        model: Hugging Face model identifier.
+        llm: Underlying Small_LLM_Model instance.
+        vocab: Token string to ID mapping.
+        inv_vocab: Token ID to string mapping.
+        max_len_vocab: Length of the longest token.
+        fn_name_tokens: Token IDs usable for function names.
+        string_tokens: Token IDs usable for string parameters.
+        start_number_tokens: Token IDs that can start a number.
+        start_integer_tokens: Token IDs that can start an integer.
+        mid_number_tokens: Token IDs that can continue a number.
+        mid_integer_tokens: Token IDs that can continue an integer.
+        true_id: Token ID of the string 'true'.
+        false_id: Token ID of the string 'false'.
+    """
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     model: str = 'Qwen/Qwen3-0.6B'
@@ -22,6 +42,7 @@ class LLM(BaseModel):
 
     @model_validator(mode='after')
     def initialize(self) -> 'LLM':
+        """Initialize the underlying model and token caches."""
         self.llm = Small_LLM_Model(self.model)
         self.vocab = get_vocab(self.llm)
         self.inv_vocab = get_inverted_vocab(self.llm)
@@ -30,6 +51,11 @@ class LLM(BaseModel):
         return self
 
     def cache_fn_name_tokens(self, functions: list[FunctionDef]) -> None:
+        """Cache token IDs that can appear in function names.
+
+        Args:
+            functions: List of function definitions.
+        """
         valid_chars: set[str] = set()
         for func in functions:
             valid_chars.update(func.name)
@@ -38,6 +64,7 @@ class LLM(BaseModel):
                 self.fn_name_tokens.add(token_id)
 
     def _cache_param_tokens(self) -> None:
+        """Cache token IDs usable for string, number and integer parameters."""
         for token_id, token_str in self.inv_vocab.items():
             if not token_str:
                 continue
@@ -96,6 +123,16 @@ class LLM(BaseModel):
         self.false_id = self.ft_encode('false')[0]
 
     def ft_encode(self, text: str) -> list[int]:
+        """Encode text into token IDs using a greedy longest-match approach.
+
+        Falls back to native encode for len(text) > 20.
+
+        Args:
+            text: Text to encode.
+
+        Returns:
+            List of token IDs.
+        """
         try:
             return [self.vocab[text]]
         except KeyError:
@@ -119,6 +156,14 @@ class LLM(BaseModel):
         return token_ids
 
     def ft_decode(self, token_ids: list[int] | int) -> str:
+        """Decode token ID(s) back to a string.
+
+        Args:
+            token_ids: Single token ID or list of token IDs.
+
+        Returns:
+            Decoded string.
+        """
         if isinstance(token_ids, int):
             return self.inv_vocab.get(token_ids, '')
         if len(token_ids) > 20:
@@ -129,6 +174,14 @@ class LLM(BaseModel):
             )
 
     # def get_logits(self, input_ids: list[int]) -> list[float]:
+    #     """Get a score distribution of the IDs in the model's vocabulary.
+
+    #     Args:
+    #         input_ids: Token IDs to feed to the model.
+
+    #     Returns:
+    #         List of logits.
+    #     """
     #     return (
     #         self.llm.get_logits_from_input_ids(input_ids) if self.llm else []
     #     )
@@ -140,6 +193,15 @@ class LLM(BaseModel):
         input_ids: list[int],
         cache: Any = None,
             ) -> tuple[Any, list[float]]:
+        """Compute the next token logits, using past computations KV Cache.
+
+        Args:
+            input_ids: Token IDs to feed to the model.
+            cache: Optional previous cache state.
+
+        Returns:
+            Tuple of (new_cache, logits list).
+        """
         return (
             self.llm.get_logits_from_input_ids(input_ids, cache)
             if self.llm is not None else (None, []))

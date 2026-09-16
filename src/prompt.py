@@ -1,7 +1,17 @@
+"""Build prompts for function selection and parameter extraction."""
+
 from src import FunctionDef, Prompt
 
 
 def _functions_definition(functions: list[FunctionDef]) -> str:
+    """Format function definitions as a readable string.
+
+    Args:
+        functions: List of function definitions.
+
+    Returns:
+        Formatted multi-line string of function descriptions.
+    """
     res: list[str] = []
     for func in functions:
         params_str: str = ', '.join(
@@ -20,6 +30,15 @@ def build_function_calling_prompt(
         prompt: Prompt,
         functions: list[FunctionDef]
         ) -> str:
+    """Build the prompt used to select a function.
+
+    Args:
+        prompt: User prompt.
+        functions: Available function definitions.
+
+    Returns:
+        Full prompt string for function selection.
+    """
     return (
         "You are a function calling assistant...\n\n"
         f"Available functions:\n{_functions_definition(functions)}\n\n"
@@ -31,7 +50,15 @@ def build_params_prompt(
         prompt: Prompt,
         function: FunctionDef
         ) -> str:
+    """Build the prompt used to extract parameters.
 
+    Args:
+        prompt: User prompt.
+        function: Selected function definition.
+
+    Returns:
+        Full prompt string for parameter extraction.
+    """
     params_str: str = ', '.join(
         f"parameter '{key}' (type: {value})"
         for key, value

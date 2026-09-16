@@ -115,8 +115,11 @@ make fclean          # clean and remove .venv, hf_cache and uv_cache
 ### AI Usage
 
 AI was used to:
-- rephrase sentences and improve their clarity in documentation.
-- ...
+- rephrase sentences and improve their clarity in documentation;
+- clarify concepts related to LLMs, tokenization, BPE, constrained decoding and function calling;
+- help explain the provided llm_sdk package, its Small_LLM_Model class and its methods;
+- investigate performance issues and discuss possible optimizations for tokenization and constrained decoding;
+- drafting docstrings following PEP 257.
 
 ## Algorithm explanation
 

@@ -1,3 +1,5 @@
+"""Parse CLI args, function definitions and user prompts from JSON."""
+
 from pydantic import BaseModel, ConfigDict, ValidationError
 import json
 from typing import Any, Literal
@@ -6,12 +8,27 @@ from argparse import ArgumentParser
 
 
 class ParamDef(BaseModel):
+    """Parameter type definition.
+
+    Attributes:
+        type: One of 'string', 'number', 'integer', or 'boolean'.
+    """
+
     model_config = ConfigDict(extra="forbid")
 
     type: Literal["string", "number", "integer", "boolean"]
 
 
 class FunctionDef(BaseModel):
+    """Function definition for function calling.
+
+    Attributes:
+        name: Function name.
+        description: Function description.
+        parameters: Mapping of parameter names to their definitions.
+        returns: Return type definition.
+    """
+
     model_config = ConfigDict(extra="forbid")
 
     name: str
@@ -21,12 +38,26 @@ class FunctionDef(BaseModel):
 
 
 class Prompt(BaseModel):
+    """User prompt wrapper.
+
+    Attributes:
+        prompt: The user prompt text.
+    """
+
     model_config = ConfigDict(extra="forbid")
 
     prompt: str
 
 
 def _json_load(path: str) -> Any:
+    """Load JSON data from a file.
+
+    Args:
+        path: Path to the JSON file.
+
+    Returns:
+        JSON content.
+    """
     try:
         with open(path) as f:
             return json.load(f)
@@ -39,6 +70,14 @@ def _json_load(path: str) -> Any:
 
 
 def parse_functions_definition(path: str) -> list[FunctionDef]:
+    """Parse function definitions from a JSON file.
+
+    Args:
+        path: Path to the functions definition JSON file.
+
+    Returns:
+        List of validated FunctionDef objects.
+    """
     res: list[FunctionDef] = []
     for func in _json_load(path):
         try:
@@ -51,6 +90,14 @@ def parse_functions_definition(path: str) -> list[FunctionDef]:
 
 
 def parse_prompts(path: str) -> list[Prompt]:
+    """Parse user prompts from a JSON file.
+
+    Args:
+        path: Path to the prompts JSON file.
+
+    Returns:
+        List of validated Prompt objects.
+    """
     res: list[Prompt] = []
     for prompt in _json_load(path):
         try:
@@ -63,6 +110,11 @@ def parse_prompts(path: str) -> list[Prompt]:
 
 
 def parse_args() -> tuple[str, str, str]:
+    """Parse command-line arguments.
+
+    Returns:
+        Tuple of (input_path, functions_definition_path, output_path).
+    """
     parser: ArgumentParser = ArgumentParser()
     parser.add_argument(
         "--input",
