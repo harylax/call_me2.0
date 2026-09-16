@@ -171,7 +171,7 @@ The process is repeated until a complete function name has been generated.
                             is it a prefix of one of remaining_suffixes? |
                                     |                                    |
                               masked_logits[token]                       |
-                              = logits[token] else -inf     |
+                              = logits[token] else -inf                  |
                                     |                                    |
                             best_id = argmax(masked_logits)              |
                                     |                                    |
