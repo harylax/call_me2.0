@@ -64,5 +64,8 @@ def load_llm() -> LLM:
         return LLM(model=_choose_llm())
     except ValidationError as err:
         for error in err.errors():
-            print(f"ValidationError: {error['msg']}", file=sys.stderr)
+            print(
+                "\033[31m"
+                f"ValidationError: {error['msg']}"
+                "\033[0m", file=sys.stderr)
         sys.exit(1)

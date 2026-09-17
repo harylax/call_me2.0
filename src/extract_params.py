@@ -236,8 +236,10 @@ def params_from_llm(
                 res[param] = float(generated.rstrip("'"))
             except ValueError:
                 print(
+                    "\033[31m"
                     f"Warning: fail to generate '{param}' number, "
-                    "set it to 0.0")
+                    "set it to 0.0"
+                    "\033[0m")
                 res[param] = 0.0
 
         elif param_def.type == 'integer':
@@ -248,8 +250,10 @@ def params_from_llm(
                 res[param] = int(generated.rstrip("'"))
             except ValueError:
                 print(
+                    "\033[31m"
                     f"Warning: fail to generate '{param}' integer, "
-                    "set it to 0")
+                    "set it to 0"
+                    "\033[0m")
                 res[param] = 0
 
         elif param_def.type == 'boolean':

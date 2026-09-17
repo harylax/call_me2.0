@@ -34,7 +34,10 @@ def build_output(
             'name': llm_fn_name,
             'parameters': llm_params})
     except Exception as err:
-        print(f"{err.__class__.__name__}: {err}", file=sys.stderr)
+        print(
+            "\033[31m"
+            f"{err.__class__.__name__}: {err}"
+            "\033[0m", file=sys.stderr)
         return
     print()
     print("══════════════════════════════════════════════════════")
@@ -77,4 +80,7 @@ def run(
         with open(output_path, 'w') as f:
             json.dump(output, f, indent=2)
     except OSError as err:
-        print(f"{err.__class__.__name__}: {err}", file=sys.stderr)
+        print(
+            "\033[31m"
+            f"{err.__class__.__name__}: {err}"
+            "\033[0m", file=sys.stderr)

@@ -20,4 +20,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as err:
+        print(f"\033[31mUnexpected Error: {err}\033[0m")

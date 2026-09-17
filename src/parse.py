@@ -62,10 +62,13 @@ def _json_load(path: str) -> Any:
         with open(path) as f:
             return json.load(f)
     except OSError as err:
-        print(f"{err.__class__.__name__}: {err}", file=sys.stderr)
+        print(
+            "\033[31m"
+            f"{err.__class__.__name__}: {err}"
+            "\033[0m", file=sys.stderr)
         sys.exit(1)
     except json.JSONDecodeError as err:
-        print(f"JSONDecodeError: {err}")
+        print(f"\033[31mJSONDecodeError: {err}\033[0m", file=sys.stderr)
         sys.exit(1)
 
 
@@ -84,8 +87,17 @@ def parse_functions_definition(path: str) -> list[FunctionDef]:
             res.append(FunctionDef.model_validate(func))
         except ValidationError as err:
             for error in err.errors():
-                print(f"ValidationError: {error['msg']}", file=sys.stderr)
+                print(
+                    "\033[31m"
+                    f"ValidationError: {error['msg']}"
+                    "\033[0m", file=sys.stderr)
             sys.exit(1)
+    if not res:
+        print(
+            "\033[31m"
+            "Error: No functions definition available"
+            "\033[0m", file=sys.stderr)
+        sys.exit(1)
     return res
 
 
@@ -104,8 +116,16 @@ def parse_prompts(path: str) -> list[Prompt]:
             res.append(Prompt.model_validate(prompt))
         except ValidationError as err:
             for error in err.errors():
-                print(f"ValidationError: {error['msg']}", file=sys.stderr)
+                print(
+                    "\033[31m"
+                    f"ValidationError: {error['msg']}"
+                    "\033[0m", file=sys.stderr)
             sys.exit(1)
+    if not res:
+        print(
+            "\033[31m"
+            "Error: No prompt provided"
+            "\033[0m", file=sys.stderr)
     return res
 
 
