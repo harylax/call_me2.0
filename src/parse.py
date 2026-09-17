@@ -126,6 +126,7 @@ def parse_prompts(path: str) -> list[Prompt]:
             "\033[31m"
             "Error: No prompt provided"
             "\033[0m", file=sys.stderr)
+        sys.exit(1)
     return res
 
 
